@@ -7,7 +7,8 @@
 #include <atomic>
 
 #include <image_transport/subscriber_filter.h>
-#include <mask_rcnn_ros/Result.h>
+#include <yolact_ros_msgs/Detections.h>
+#include <yolact_ros_msgs/Detection.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/time_synchronizer.h>
@@ -34,12 +35,12 @@ class RGBDSegmentation {
       RGBDSyncPolicy;
   typedef message_filters::Synchronizer<RGBDSyncPolicy> RGBDSynchronizer;
 
-  typedef message_filters::Subscriber<mask_rcnn_ros::Result>
+  typedef message_filters::Subscriber<yolact_ros_msgs::Detections>
       InstanceSegmentationSubscriber;
   typedef message_filters::Subscriber<sensor_msgs::PointCloud2>
       CloudSegmentationSubscriber;
   typedef message_filters::sync_policies::ApproximateTime<
-      mask_rcnn_ros::Result, sensor_msgs::PointCloud2>
+      yolact_ros_msgs::Detections, sensor_msgs::PointCloud2>
       SegmentationSyncPolicy;
   typedef message_filters::Synchronizer<SegmentationSyncPolicy>
       SegmentationSynchronizer;
@@ -49,11 +50,11 @@ class RGBDSegmentation {
                     const sensor_msgs::CameraInfoConstPtr& camera_info);
 
   void segmentationCallback(
-      const mask_rcnn_ros::Result::ConstPtr& instance_segmentation,
+      const yolact_ros_msgs::Detections::ConstPtr& instance_segmentation,
       const sensor_msgs::PointCloud2::ConstPtr& cloud_segmentation);
 
   void extractInstances(
-      const mask_rcnn_ros::Result::ConstPtr& instance_segmentation,
+      const yolact_ros_msgs::Detections::ConstPtr& instance_segmentation,
       std::vector<Instance>* instances);
 
   // Split the segmented cloud in multiple segments.
@@ -122,6 +123,10 @@ class RGBDSegmentation {
 
   // RGB-D segmentation mask publisher.
   image_transport::Publisher segmentation_mask_pub_;
+
+
+  //class name translation
+  std::map<std::string, uint> class_name_to_id_;
 };
 
 #endif  // RGBD_SEGMENTATION_RGB_SEGMENTATION_H_

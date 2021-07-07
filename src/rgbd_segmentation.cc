@@ -64,7 +64,7 @@ RGBDSegmentation::RGBDSegmentation(const ros::NodeHandle& nh,
 
   // RGB-D segmentation subscribers.
   instance_segmentation_sub_ =
-      new InstanceSegmentationSubscriber(nh_, "/mask_rcnn/result", 1000);
+      new InstanceSegmentationSubscriber(nh_, "/yolact_ros/detections", 1000);
 
   cloud_segmentation_sub_ = new CloudSegmentationSubscriber(
       nh_, "/cloud_segmentation_node/segmented_cloud", 1000);
@@ -83,6 +83,18 @@ RGBDSegmentation::RGBDSegmentation(const ros::NodeHandle& nh,
   // RGB-D segmentation mask publisher.
   segmentation_mask_pub_ =
       image_transport.advertise("/rgbd_segmentation_node/mask/image", 1, false);
+
+
+
+  //create translation dict; TODO read from file
+  class_name_to_id_["people"] = 1;
+  class_name_to_id_["door"] = 2;
+  class_name_to_id_["window"] = 3;
+  class_name_to_id_["stairs"] = 4;
+  class_name_to_id_["switches"] = 5;
+  class_name_to_id_["valves"] = 6;
+  class_name_to_id_["hazmat_labels"] = 7;
+  class_name_to_id_["fire_extinguisher"] = 8;
 }
 
 void RGBDSegmentation::rgbdCallback(
@@ -97,7 +109,7 @@ void RGBDSegmentation::rgbdCallback(
 }
 
 void RGBDSegmentation::segmentationCallback(
-    const mask_rcnn_ros::Result::ConstPtr& instance_segmentation,
+    const yolact_ros_msgs::Detections::ConstPtr& instance_segmentation,
     const sensor_msgs::PointCloud2::ConstPtr& cloud_segmentation) {
   pcl::console::TicToc tic_toc;
   tic_toc.tic();
@@ -125,9 +137,31 @@ void RGBDSegmentation::segmentationCallback(
 }
 
 void RGBDSegmentation::extractInstances(
-    const mask_rcnn_ros::Result::ConstPtr& instance_segmentation,
+    const yolact_ros_msgs::Detections::ConstPtr& instance_segmentation,
     std::vector<Instance>* instances) {
   CHECK_NOTNULL(instances);
+  instances->reserve(instance_segmentation->detections.size());
+  for (size_t i = 0u; i < instance_segmentation->detections.size(); i++) {
+    Instance instance;
+    uint width = instance_segmentation->detections[i].mask.width;
+    uint height = instance_segmentation->detections[i].mask.height;
+    instance.mask = new cv::Mat(height, width, cv_bridge::CV_8UC1);
+    instance.class_id = class_name_to_id_[instance_segmentation->detections[i].class_name];
+
+    uint8_t[] mask = instance_segmentation->detections[i].mask.mask;
+    for (size_t y = 0u; y < height; y++) {
+      for (size_t x = 0u; x < width; x++) {
+        uint pos = x + y * width;
+        uint8_t val = mask[pos + 0];
+        image.at(y, x) = val;
+      }
+    }
+    
+    
+  }
+  
+  
+  
   instances->reserve(instance_segmentation->masks.size());
 
   for (size_t i = 0u; i < instance_segmentation->masks.size(); ++i) {
