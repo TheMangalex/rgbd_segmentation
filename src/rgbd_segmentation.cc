@@ -33,11 +33,16 @@ RGBDSegmentation::RGBDSegmentation(const ros::NodeHandle& nh,
   std::string depth_image_sub_topic;
   nh_private.param<std::string>("depth_image_sub_topic", depth_image_sub_topic,
                                 depth_image_sub_topic);
+  std::string camera_info_sub_topic;
+  nh_private.param<std::string>("camera_info_sub_topic", camera_info_sub_topic,
+                                camera_info_sub_topic);
+
+
   depth_image_sub_ =
       new ImageSubscriber(image_transport, depth_image_sub_topic, 1);
 
   camera_info_sub_ =
-      new CameraInfoSubscriber(nh_, "/camera/rgb/camera_info", 1);
+      new CameraInfoSubscriber(nh_, camera_info_sub_topic, 1);
 
   rgbd_synchronizer_ =
       new RGBDSynchronizer(RGBDSyncPolicy(10), *rgb_image_sub_,

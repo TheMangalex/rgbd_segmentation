@@ -4,6 +4,8 @@ project(rgbd_segmentation)
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
+find_package(Boost REQUIRED COMPONENTS system thread filesystem)
+
 cs_add_library(${PROJECT_NAME}
   src/rgbd_segmentation.cc
 )
