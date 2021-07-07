@@ -17,7 +17,7 @@
   <depend>eigen_catkin</depend>
   <depend>glog_catkin</depend>
   <depend>image_transport</depend>
-  <depend>yolact_ros_msgs</depend>
+  <depend>segmentation_msgs</depend>
   <depend>pcl_catkin</depend>
   <depend>roscpp</depend>
 </package>

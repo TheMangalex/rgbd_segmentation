@@ -1,0 +1,39 @@
+<launch>
+  <arg name="sensor_name" default="ma" />
+  <arg name="scene_name" default="ma" />
+  <arg name="visualize" default="true" />
+
+  <node pkg="rgbd_segmentation" type="rgbd_segmentation_node" name="rgbd_segmentation_node" output="log">
+    <rosparam command="load" file="$(find rgbd_segmentation)/config/default.yaml" />
+    <rosparam command="load" file="$(find rgbd_segmentation)/config/$(arg sensor_name).yaml" />
+  </node>
+
+  <node pkg="yolact_ros" type="yolact_ros" name="yolact_ros" output="screen">
+  <param name="model_path" value="$(find yolact_ros)/yolact_plus_resnet50_17_100000.pth" />
+  <param name="image_topic" value="/rgbd_segmentation_node/rgb/image_raw" />
+  <param name="use_compressed_image" value="True" />
+  <param name="publish_visualization" value="True" />
+  <param name="publish_detections" value="True" />
+  <param name="display_visualization" value="False" />
+  <param name="publish_semantic_image" value="True" />
+  <param name="min_score" value="70" />
+  </node>
+
+
+  <node pkg="nodelet" type="nodelet" args="manager" name="nodelet_manager" output="screen"/>
+
+  <node pkg="nodelet" type="nodelet" name="points_xyzrgb" args="load depth_image_proc/point_cloud_xyzrgb nodelet_manager --no-bond">
+    <remap from="rgb/camera_info"             to="/rgbd_segmentation_node/rgb/camera_info" />
+    <remap from="rgb/image_rect_color"        to="/rgbd_segmentation_node/rgb/image_raw" />
+    <remap from="depth_registered/image_rect" to="/rgbd_segmentation_node/depth/image_raw" />
+    <remap from="depth_registered/points"     to="/camera/depth_registered/points" />
+  </node>
+
+  <node pkg="cloud_segmentation" type="cloud_segmentation_node" name="cloud_segmentation_node" output="log">
+    <rosparam command="load" file="$(find cloud_segmentation)/config/default.yaml" />
+    <rosparam command="load" file="$(find cloud_segmentation)/config/$(arg scene_name).yaml" />
+    <rosparam command="load" file="$(find rgbd_segmentation)/config/$(arg sensor_name).yaml" />
+    <param name="viewer/enable" value="$(arg visualize)" />
+  </node>
+
+</launch>
