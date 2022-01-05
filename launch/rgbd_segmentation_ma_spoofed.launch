@@ -20,6 +20,8 @@
   </node-->
 
 
+  <!-- todo start yolact spoofer -->
+
   <node pkg="nodelet" type="nodelet" args="manager" name="nodelet_manager" output="screen"/>
 
   <node pkg="nodelet" type="nodelet" name="points_xyzrgb" args="load depth_image_proc/point_cloud_xyzrgb nodelet_manager --no-bond">
